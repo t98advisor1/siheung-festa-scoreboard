@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 시흥 AI+X 미래교육 페스타 · 실시간 통합 전광판</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #070b19;
+      --bg-panel: rgba(15, 23, 42, 0.82);
+      --bg-card: rgba(30, 41, 59, 0.72);
+      --border: rgba(148, 163, 184, 0.18);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --pose: #f97316;
+      --pose-glow: rgba(249, 115, 22, 0.35);
+      --korean: #38bdf8;
+      --korean-glow: rgba(56, 189, 248, 0.35);
+      --festa: #facc15;
+      --festa-glow: rgba(250, 204, 21, 0.35);
+      --emerald: #34d399;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(249, 115, 22, 0.16), transparent 36%),
+        radial-gradient(circle at 88% 18%, rgba(56, 189, 248, 0.16), transparent 38%),
+        radial-gradient(circle at 50% 92%, rgba(250, 204, 21, 0.12), transparent 42%),
+        var(--bg-deep);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 28px 16px;
+      gap: 16px;
+      max-width: 1920px;
+      margin: 0 auto;
+    }
+
+    /* 상단 헤더 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #f97316, #facc15);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 0.95rem;
+      padding: 7px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .brand h1 {
+      font-family: 'Jua', sans-serif;
+      font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #ffffff 0%, #fde68a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stats-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+
+    .stat-pill b {
+      font-size: 1.08rem;
+      font-weight: 900;
+    }
+
+    .stat-pill.pose b { color: var(--pose); }
+    .stat-pill.korean b { color: var(--korean); }
+    .stat-pill.both b { color: var(--festa); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(30, 41, 59, 0.9);
+      color: var(--text-main);
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn:hover { background: rgba(51, 65, 85, 0.95); border-color: rgba(255, 255, 255, 0.35); }
+    .btn:active { transform: scale(0.97); }
+    .btn.active { background: #f97316; border-color: #fb923c; color: #fff; }
+    .btn.active-blue { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .btn.active-gold { background: linear-gradient(135deg, #eab308, #f97316); border-color: #fde047; color: #0f172a; }
+
+    /* 네비게이션 탭 바 */
+    .stage-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .stage-tab {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .stage-tab .tab-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .stage-tab .tab-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 1rem;
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-main);
+    }
+
+    .stage-tab .tab-title {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stage-tab .tab-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stage-tab.active[data-slide="0"] {
+      border-color: var(--pose);
+      box-shadow: 0 0 24px var(--pose-glow);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(15, 23, 42, 0.92));
+    }
+    .stage-tab.active[data-slide="0"] .tab-num { background: var(--pose); color: #fff; }
+
+    .stage-tab.active[data-slide="1"] {
+      border-color: var(--korean);
+      box-shadow: 0 0 24px var(--korean-glow);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(15, 23, 42, 0.92));
+    }
+    .stage-tab.active[data-slide="1"] .tab-num { background: var(--korean); color: #0f172a; }
+
+    .stage-tab.active[data-slide="2"] {
+      border-color: var(--festa);
+      box-shadow: 0 0 24px var(--festa-glow);
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(15, 23, 42, 0.92));
+    }
+    .stage-tab.active[data-slide="2"] .tab-num { background: var(--festa); color: #0f172a; }
+
+    .tab-progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 4px;
+      width: 0%;
+      background: currentColor;
+      transition: width 0.2s linear;
+    }
+    .stage-tab[data-slide="0"] .tab-progress { background: var(--pose); }
+    .stage-tab[data-slide="1"] .tab-progress { background: var(--korean); }
+    .stage-tab[data-slide="2"] .tab-progress { background: var(--festa); }
+
+    /* 메인 콘텐츠 영역 */
+    .board-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .slide-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .slide-panel.active { display: flex; }
+
+    /* 3단 와이드 분할 모드 */
+    .board-stage.split-mode {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .board-stage.split-mode .slide-panel {
+      display: flex;
+    }
+
+    .board-stage.split-mode .podium-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .board-stage.split-mode .special-awards {
+      grid-template-columns: 1fr;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px 26px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+
+    .panel-header h2 {
+      font-family: 'Jua', sans-serif;
+      font-size: clamp(1.5rem, 2.5vw, 2.3rem);
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-header .subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .theme-pose h2 { color: #fdba74; }
+    .theme-korean h2 { color: #7dd3fc; }
+    .theme-festa h2 { color: #fde047; }
+
+    /* 포디엄 1~3위 */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .podium-card {
+      border-radius: 18px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .podium-card.rank-1 {
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.24), rgba(30, 41, 59, 0.92));
+      border-color: rgba(250, 204, 21, 0.65);
+      box-shadow: 0 0 28px rgba(250, 204, 21, 0.18);
+    }
+
+    .podium-card.rank-2 {
+      background: linear-gradient(135deg, rgba(203, 213, 225, 0.18), rgba(30, 41, 59, 0.9));
+      border-color: rgba(203, 213, 225, 0.45);
+    }
+
+    .podium-card.rank-3 {
+      background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(30, 41, 59, 0.9));
+      border-color: rgba(251, 146, 60, 0.45);
+    }
+
+    .medal {
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .podium-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .podium-rank-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .podium-nick {
+      font-size: clamp(1.25rem, 2vw, 1.85rem);
+      font-weight: 900;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 2px 0;
+    }
+
+    .podium-meta {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .podium-score {
+      font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .theme-pose .podium-score { color: #fb923c; }
+    .theme-korean .podium-score { color: #38bdf8; }
+    .theme-festa .podium-score { color: #fde047; }
+
+    /* 특별 부문상 */
+    .special-awards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .award-chip {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .award-chip .a-label { font-size: 0.84rem; color: var(--text-muted); font-weight: 700; }
+    .award-chip .a-val { font-size: 1.05rem; font-weight: 900; color: #fff; margin-top: 2px; }
+
+    /* 순위 테이블 */
+    .table-wrap {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 46vh;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.95rem, 1.25vw, 1.18rem);
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: rgba(30, 41, 59, 0.98);
+      color: #cbd5e1;
+      font-weight: 800;
+      padding: 13px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      z-index: 2;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    tbody tr:nth-child(even) { background: rgba(30, 41, 59, 0.3); }
+    tbody tr.highlight-both { background: rgba(250, 204, 21, 0.08); }
+
+    .td-nick { font-weight: 800; color: #ffffff; text-align: left; padding-left: 20px; }
+    .td-score { font-weight: 900; font-size: 1.12em; }
+    .theme-pose .td-score { color: #fb923c; }
+    .theme-korean .td-score { color: #38bdf8; }
+    .theme-festa .td-score { color: #fde047; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .badge-both { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.45); }
+    .badge-pose { background: rgba(249, 115, 22, 0.18); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.35); }
+    .badge-korean { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.35); }
+
+    .empty-row {
+      padding: 40px 16px !important;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* 푸터 */
+    .footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0 6px;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--emerald);
+      margin-right: 6px;
+      box-shadow: 0 0 10px var(--emerald);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    @media (max-width: 1024px) {
+      .app-shell { padding: 12px; }
+      .stage-nav { grid-template-columns: 1fr; }
+      .podium-grid, .special-awards { grid-template-columns: 1fr; }
+      .board-stage.split-mode { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 상단 헤더 -->
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-badge">2026 시흥 AI+X 미래교육 페스타</span>
+        <div>
+          <h1>실시간 챌린지 통합 전광판</h1>
+          <p>온몸으로 찰칵! 포즈 챌린지 × 국어 놀이터 · 동일 닉네임 5분 이내 자동 합산</p>
+        </div>
+      </div>
+
+      <div class="stats-strip">
+        <div class="stat-pill pose">📸 포즈 <b id="stat-pose">0</b>명</div>
+        <div class="stat-pill korean">📚 국어 <b id="stat-korean">0</b>명</div>
+        <div class="stat-pill both">🏆 5분 내 완주 <b id="stat-both">0</b>명</div>
+      </div>
+
+      <div class="controls">
+        <button class="btn active" id="btn-autorotate">▶ 자동 전환 ON</button>
+        <button class="btn" id="btn-split">⊞ 3단 한눈에 보기</button>
+        <button class="btn" id="btn-refresh">🔄 새로고침</button>
+        <button class="btn" id="btn-fullscreen">⛶ 전체화면</button>
+      </div>
+    </header>
+
+    <!-- 3단계 전환 탭 -->
+    <nav class="stage-nav" id="stage-nav">
+      <button class="stage-tab active" data-slide="0">
+        <div class="tab-left">
+          <span class="tab-num">1</span>
+          <div>
+            <div class="tab-title">📸 포즈 챌린지 전체 순위</div>
+            <div class="tab-sub">온몸으로 찰칵! AI 포즈 미션</div>
+          </div>
+        </div>
+        <div class="tab-progress" id="prog-0"></div>
+      </button>
+
+      <button class="stage-tab" data-slide="1">
+        <div class="tab-left">
+          <span class="tab-num">2</span>
+          <div>
+            <div class="tab-title">📚 국어 놀이터 전체 순위</div>
+            <div class="tab-sub">AI 나이 예측 · 글 찾기 · 끝말잇기</div>
+          </div>
+        </div>
+        <div class="tab-progress" id="prog-1"></div>
+      </button>
+
+      <button class="stage-tab" data-slide="2">
+        <div class="tab-left">
+          <span class="tab-num">3</span>
+          <div>
+            <div class="tab-title">🏆 페스타 통합 합산 순위</div>
+            <div class="tab-sub">5분 이내 동일 닉네임 합산 챔피언</div>
+          </div>
+        </div>
+        <div class="tab-progress" id="prog-2"></div>
+      </button>
+    </nav>
+
+    <!-- 메인 보드 -->
+    <main class="board-stage" id="board-stage">
+      <!-- 1차: 포즈 챌린지 -->
+      <section class="slide-panel active theme-pose" id="slide-0">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>📸 온몸으로 찰칵! 포즈 챌린지 전체 순위</h2>
+              <p class="subtitle">기본 7가지 포즈 + 이벤트 보너스 + 전신 보너스 합계</p>
+            </div>
+            <span class="badge badge-pose" id="pose-count-badge">총 0건</span>
+          </div>
+          <div class="podium-grid" id="pose-podium"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:90px">순위</th>
+                  <th style="text-align:left;padding-left:20px">닉네임</th>
+                  <th>기본 점수</th>
+                  <th>보너스</th>
+                  <th>최종 점수</th>
+                  <th>등록 시각</th>
+                </tr>
+              </thead>
+              <tbody id="pose-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2차: 국어 놀이터 -->
+      <section class="slide-panel theme-korean" id="slide-1">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>📚 국어 놀이터 전체 순위</h2>
+              <p class="subtitle">AI가 쓴 글 찾기 + 뽀랭이 끝말잇기 합계 점수</p>
+            </div>
+            <span class="badge badge-korean" id="korean-count-badge">총 0건</span>
+          </div>
+          <div class="podium-grid" id="korean-podium"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:90px">순위</th>
+                  <th style="text-align:left;padding-left:20px">별명</th>
+                  <th>난이도</th>
+                  <th>점수</th>
+                  <th>등록 시각</th>
+                </tr>
+              </thead>
+              <tbody id="korean-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3차: 통합 합산 -->
+      <section class="slide-panel theme-festa" id="slide-2">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>🏆 2026 시흥 AI+X 페스타 종합 합산 순위</h2>
+              <p class="subtitle">같은 닉네임으로 5분 이내에 두 부스를 완료한 점수를 자동 합산합니다</p>
+            </div>
+            <span class="badge badge-both" id="combined-count-badge">총 0건</span>
+          </div>
+          <div class="podium-grid" id="combined-podium"></div>
+          <div class="special-awards" id="special-awards"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:85px">순위</th>
+                  <th style="text-align:left;padding-left:20px">닉네임 (ID)</th>
+                  <th>통합 총점</th>
+                  <th>포즈 점수</th>
+                  <th>국어 점수</th>
+                  <th>시간 차이</th>
+                  <th>완주 상태</th>
+                </tr>
+              </thead>
+              <tbody id="combined-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 하단 상태 바 -->
+    <footer class="footer-bar">
+      <div><span class="live-dot"></span><span id="sync-status">실시간 구글 시트 연동 중...</span></div>
+      <div id="last-updated">마지막 갱신: -</div>
+    </footer>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwPuE_9SvtjrbsoFlbPgeOCb_7JLWmmyePGTJR4L9leDpeRVRQ40hbHDJTTB0y7UVdq/exec";
+    const SLIDE_DURATION_MS = 12000; // 12초마다 자동 전환
+    const POLL_INTERVAL_MS = 10000;  // 10초마다 실시간 데이터 갱신
+
+    let currentSlide = 0;
+    let autoRotate = true;
+    let splitMode = false;
+    let slideElapsed = 0;
+    let latestData = null;
+
+    const $ = id => document.getElementById(id);
+
+    function esc(str) {
+      return String(str ?? "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    function medalIcon(rank) {
+      if (rank === 1) return "🥇";
+      if (rank === 2) return "🥈";
+      if (rank === 3) return "🥉";
+      return `${rank}위`;
+    }
+
+    function renderPodium(containerId, items, metaBuilder, scoreField) {
+      const box = $(containerId);
+      const titles = ["1위 · CHAMPION", "2위 · SILVER", "3위 · BRONZE"];
+      const medals = ["🥇", "🥈", "🥉"];
+      let html = "";
+      for (let i = 0; i < 3; i++) {
+        const item = items[i];
+        html += `
+          <div class="podium-card rank-${i + 1}">
+            <div class="medal">${medals[i]}</div>
+            <div class="podium-info">
+              <div class="podium-rank-label">${titles[i]}</div>
+              <div class="podium-nick">${item ? esc(item.nickname) : "도전자 대기 중"}</div>
+              <div class="podium-meta">${item ? metaBuilder(item) : "-"}</div>
+            </div>
+            <div class="podium-score">${item ? `${Number(item[scoreField] || 0).toLocaleString()}점` : "-"}</div>
+          </div>
+        `;
+      }
+      box.innerHTML = html;
+    }
+
+    function renderData(data) {
+      latestData = data;
+      const stats = data.stats || {};
+      $("stat-pose").textContent = stats.poseCount ?? 0;
+      $("stat-korean").textContent = stats.koreanCount ?? 0;
+      $("stat-both").textContent = stats.bothCompletedCount ?? 0;
+      $("last-updated").textContent = `마지막 갱신: ${data.updatedAtKst || new Date().toLocaleTimeString("ko-KR")}`;
+      $("sync-status").textContent = "구글 시트 실시간 연동 정상 (10초 주기 자동 갱신)";
+
+      // 1. 포즈 챌린지
+      const poseList = data.poseRanking || [];
+      $("pose-count-badge").textContent = `총 ${poseList.length}건`;
+      renderPodium("pose-podium", poseList, r => `기본 ${r.baseScore} + 보너스 ${r.bonusScore} · ${esc(r.timeStr)}`, "score");
+      $("pose-tbody").innerHTML = poseList.length
+        ? poseList.map(r => `
+            <tr>
+              <td><b>${medalIcon(r.rank)}</b></td>
+              <td class="td-nick">${esc(r.nickname)}</td>
+              <td>${r.baseScore}점</td>
+              <td>+${r.bonusScore}점</td>
+              <td class="td-score">${Number(r.score).toLocaleString()}점</td>
+              <td>${esc(r.timeStr)}</td>
+            </tr>
+          `).join("")
+        : `<tr><td colspan="6" class="empty-row">아직 포즈 챌린지 기록이 없습니다. 첫 번째 도전을 기다리고 있어요!</td></tr>`;
+
+      // 2. 국어 놀이터
+      const korList = data.koreanRanking || [];
+      $("korean-count-badge").textContent = `총 ${korList.length}건`;
+      renderPodium("korean-podium", korList, r => `난이도: ${esc(r.mode || "-")} · ${esc(r.timeStr)}`, "score");
+      $("korean-tbody").innerHTML = korList.length
+        ? korList.map(r => `
+            <tr>
+              <td><b>${medalIcon(r.rank)}</b></td>
+              <td class="td-nick">${esc(r.nickname)}</td>
+              <td>${esc(r.mode || "-")}</td>
+              <td class="td-score">${Number(r.score).toLocaleString()}점</td>
+              <td>${esc(r.timeStr)}</td>
+            </tr>
+          `).join("")
+        : `<tr><td colspan="5" class="empty-row">아직 국어 놀이터 기록이 없습니다.</td></tr>`;
+
+      // 3. 통합 합산
+      const combList = data.combinedRanking || [];
+      $("combined-count-badge").textContent = `총 ${combList.length}건 (양과목 완주 ${stats.bothCompletedCount || 0}명)`;
+      renderPodium(
+        "combined-podium",
+        combList,
+        r => `포즈 ${r.poseScore} + 국어 ${r.koreanScore} · ${esc(r.status)}${r.timeDiff && r.timeDiff !== "-" ? ` (${esc(r.timeDiff)})` : ""}`,
+        "totalScore"
+      );
+
+      const aw = data.awards || {};
+      $("special-awards").innerHTML = `
+        <div class="award-chip">
+          <div>
+            <div class="a-label">🤸 포즈 마스터상 (포즈 1위)</div>
+            <div class="a-val">${aw.bestPose ? `${esc(aw.bestPose.nickname)} · ${aw.bestPose.score.toLocaleString()}점` : "집계 대기 중"}</div>
+          </div>
+        </div>
+        <div class="award-chip">
+          <div>
+            <div class="a-label">📖 국어 달인상 (국어 1위)</div>
+            <div class="a-val">${aw.bestKorean ? `${esc(aw.bestKorean.nickname)} · ${aw.bestKorean.score.toLocaleString()}점` : "집계 대기 중"}</div>
+          </div>
+        </div>
+        <div class="award-chip">
+          <div>
+            <div class="a-label">⚡ 스피드러너상 (최단 연속 완주)</div>
+            <div class="a-val">${aw.fastest ? `${esc(aw.fastest.nickname)} · ${esc(aw.fastest.timeDiff)}` : "5분 내 완주자 대기 중"}</div>
+          </div>
+        </div>
+      `;
+
+      $("combined-tbody").innerHTML = combList.length
+        ? combList.map(r => {
+            const isBoth = r.status === "양과목 완주";
+            const badgeClass = isBoth ? "badge-both" : (r.status === "포즈만 완료" ? "badge-pose" : "badge-korean");
+            return `
+              <tr class="${isBoth ? "highlight-both" : ""}">
+                <td><b>${medalIcon(r.rank)}</b></td>
+                <td class="td-nick">${esc(r.nickname)}</td>
+                <td class="td-score">${Number(r.totalScore).toLocaleString()}점</td>
+                <td>${r.poseScore > 0 ? `${r.poseScore}점` : "-"}</td>
+                <td>${r.koreanScore > 0 ? `${r.koreanScore}점` : "-"}</td>
+                <td>${esc(r.timeDiff)}</td>
+                <td><span class="badge ${badgeClass}">${esc(r.matchNote)}</span></td>
+              </tr>
+            `;
+          }).join("")
+        : `<tr><td colspan="7" class="empty-row">집계된 통합 기록이 아직 없습니다.</td></tr>`;
+    }
+
+    function fetchJsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cbName = "__festaCb_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        const script = document.createElement("script");
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, 12000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cbName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cbName] = data => { cleanup(); resolve(data); };
+        script.onerror = () => { cleanup(); reject(new Error("JSONP error")); };
+        script.src = `${url}&callback=${cbName}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadFestaData() {
+      const url = `${API_URL}?action=festa&_t=${Date.now()}`;
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (data && data.status === "success") {
+          renderData(data);
+          return;
+        }
+        throw new Error("Invalid payload");
+      } catch (e) {
+        try {
+          const data = await fetchJsonp(url);
+          if (data && data.status === "success") {
+            renderData(data);
+            return;
+          }
+        } catch (e2) {
+          $("sync-status").textContent = "연결 재시도 중... (마지막 데이터를 유지합니다)";
+        }
+      }
+    }
+
+    function setSlide(idx) {
+      currentSlide = (idx + 3) % 3;
+      slideElapsed = 0;
+      document.querySelectorAll(".slide-panel").forEach((el, i) => el.classList.toggle("active", i === currentSlide));
+      document.querySelectorAll(".stage-tab").forEach((el, i) => el.classList.toggle("active", i === currentSlide));
+      for (let i = 0; i < 3; i++) {
+        $("prog-" + i).style.width = "0%";
+      }
+    }
+
+    // 이벤트 바인딩
+    document.querySelectorAll(".stage-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (splitMode) toggleSplitMode(false);
+        setSlide(Number(btn.dataset.slide));
+      });
+    });
+
+    $("btn-autorotate").addEventListener("click", () => {
+      autoRotate = !autoRotate;
+      $("btn-autorotate").textContent = autoRotate ? "▶ 자동 전환 ON" : "⏸ 자동 전환 OFF";
+      $("btn-autorotate").classList.toggle("active", autoRotate);
+    });
+
+    function toggleSplitMode(forceVal) {
+      splitMode = typeof forceVal === "boolean" ? forceVal : !splitMode;
+      $("board-stage").classList.toggle("split-mode", splitMode);
+      $("stage-nav").style.display = splitMode ? "none" : "grid";
+      $("btn-split").classList.toggle("active-blue", splitMode);
+      $("btn-split").textContent = splitMode ? "▣ 슬라이드 모드로" : "⊞ 3단 한눈에 보기";
+    }
+
+    $("btn-split").addEventListener("click", () => toggleSplitMode());
+    $("btn-refresh").addEventListener("click", () => loadFestaData());
+    $("btn-fullscreen").addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    });
+
+    // 슬라이드 타이머 (200ms 틱)
+    setInterval(() => {
+      if (!autoRotate || splitMode) return;
+      slideElapsed += 200;
+      const pct = Math.min(100, (slideElapsed / SLIDE_DURATION_MS) * 100);
+      $("prog-" + currentSlide).style.width = pct + "%";
+      if (slideElapsed >= SLIDE_DURATION_MS) {
+        setSlide(currentSlide + 1);
+      }
+    }, 200);
+
+    // 초기 로드 & 10초 주기 실시간 갱신
+    loadFestaData();
+    setInterval(loadFestaData, POLL_INTERVAL_MS);
+  </script>
+</body>
+</html>
