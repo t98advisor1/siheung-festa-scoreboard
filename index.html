@@ -149,6 +149,35 @@
     .btn.active { background: #f97316; border-color: #fb923c; color: #fff; }
     .btn.active-blue { background: #0284c7; border-color: #38bdf8; color: #fff; }
     .btn.active-gold { background: linear-gradient(135deg, #eab308, #f97316); border-color: #fde047; color: #0f172a; }
+    /* 상단 보기 선택 바 (전체/포즈/국어/합산) - 항상 표시 */
+    .view-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+    .view-btn {
+      appearance: none;
+      border: 2px solid var(--border);
+      background: rgba(30, 41, 59, 0.92);
+      color: var(--text-main);
+      border-radius: 14px;
+      padding: 12px 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .view-btn:active { transform: scale(0.97); }
+    .view-btn.active[data-view="all"] { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .view-btn.active[data-view="0"] { background: var(--pose); border-color: #fb923c; color: #fff; }
+    .view-btn.active[data-view="1"] { background: var(--korean); border-color: #fde047; color: #0f172a; }
+    .view-btn.active[data-view="2"] { background: var(--festa); border-color: #fde047; color: #0f172a; }
+    @media (max-width: 720px) {
+      .view-nav { grid-template-columns: repeat(2, 1fr); }
+      .view-btn { font-size: 0.92rem; padding: 12px 6px; }
+    }
+
 
     /* 네비게이션 탭 바 */
     .stage-nav {
@@ -540,6 +569,14 @@
       </div>
     </header>
 
+    <!-- 상단 보기 선택: 전체 / 포즈 / 국어 / 합산 (항상 표시) -->
+    <nav class="view-nav" id="view-nav" aria-label="보기 선택">
+      <button class="view-btn active" data-view="all">⊞ 전체 보기</button>
+      <button class="view-btn" data-view="0">📸 1번 포즈 챌린지</button>
+      <button class="view-btn" data-view="1">📚 2번 국어 놀이터</button>
+      <button class="view-btn" data-view="2">🏆 3번 종합 합산</button>
+    </nav>
+
     <!-- 3단계 전환 탭 -->
     <nav class="stage-nav" id="stage-nav">
       <button class="stage-tab active" data-slide="0">
@@ -885,13 +922,40 @@
       for (let i = 0; i < 3; i++) {
         $("prog-" + i).style.width = "0%";
       }
+      syncViewNav();
     }
+
+
+    // 상단 보기 선택 바 (전체 보기 / 포즈 / 국어 / 합산)
+    function syncViewNav() {
+      const active = splitMode ? "all" : String(currentSlide);
+      document.querySelectorAll(".view-btn").forEach(b => b.classList.toggle("active", b.dataset.view === active));
+    }
+    function setAutoRotate(on) {
+      autoRotate = on;
+      $("btn-autorotate").textContent = autoRotate ? "\u25B6 자동 전환 ON" : "\u23F8 자동 전환 OFF";
+      $("btn-autorotate").classList.toggle("active", autoRotate);
+    }
+    function setView(view) {
+      if (view === "all") {
+        if (!splitMode) toggleSplitMode(true);
+      } else {
+        setAutoRotate(false); // 선택한 한 화면에 고정
+        if (splitMode) toggleSplitMode(false);
+        setSlide(Number(view));
+      }
+      syncViewNav();
+    }
+    document.querySelectorAll(".view-btn").forEach(btn => {
+      btn.addEventListener("click", () => setView(btn.dataset.view));
+    });
 
     // 이벤트 바인딩
     document.querySelectorAll(".stage-tab").forEach(btn => {
       btn.addEventListener("click", () => {
         if (splitMode) toggleSplitMode(false);
         setSlide(Number(btn.dataset.slide));
+        syncViewNav();
       });
     });
 
@@ -907,6 +971,7 @@
       $("stage-nav").style.display = splitMode ? "none" : "grid";
       $("btn-split").classList.toggle("active-blue", splitMode);
       $("btn-split").textContent = splitMode ? "▣ 슬라이드 모드로" : "⊞ 3단 한눈에 보기";
+      syncViewNav();
     }
 
     $("btn-split").addEventListener("click", () => toggleSplitMode());
@@ -932,6 +997,7 @@
 
     // 초기 로드 & 10초 주기 실시간 갱신 (기본 3단 한눈에 보기)
     toggleSplitMode(true);
+    syncViewNav();
     loadFestaData();
     setInterval(loadFestaData, POLL_INTERVAL_MS);
   </script>
