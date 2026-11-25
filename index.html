@@ -723,14 +723,30 @@
     function renderData(data) {
       latestData = data;
       const stats = data.stats || {};
-      $("stat-pose").textContent = stats.poseCount ?? 0;
+
+      // [승인된 패치 2026-11-25] 시험 기록(probe, 2026-11-25 10:50:58 KST) 화면 표시에서만 제외. 원본 시트 기록은 유지.
+      // 아래 안전 조건을 모두 만족할 때만 제외하고, 하나라도 깨지면(후보 충돌·국어 합산·응답 불완전·구조 변경) 아무것도 가리지 않습니다.
+      const PROBE_SIG = { nickname: "probe", isoTime: "2026-11-25T01:50:58.587Z", timeStr: "10:50:58", poseScore: 100 };
+      let probeHidden = false;
+      try {
+        const allPose = Array.isArray(data.poseRanking) ? data.poseRanking : [];
+        const allComb = Array.isArray(data.combinedRanking) ? data.combinedRanking : [];
+        const complete = allPose.length === Number(stats.poseCount) && allComb.length === Number(stats.totalEntries);
+        const poseCands = allPose.filter(r => r && r.nickname === PROBE_SIG.nickname && r.timeStr === PROBE_SIG.timeStr);
+        const combCands = allComb.filter(r => r && r.nickname === PROBE_SIG.nickname && r.poseTime === PROBE_SIG.timeStr);
+        probeHidden = complete
+          && poseCands.length === 1 && poseCands[0].isoTime === PROBE_SIG.isoTime
+          && combCands.length === 1 && Number(combCands[0].poseScore) === PROBE_SIG.poseScore && !Number(combCands[0].koreanScore);
+      } catch (e) { probeHidden = false; }
+      document.body.dataset.probeHidden = probeHidden ? "1" : "0";
+      $("stat-pose").textContent = (stats.poseCount ?? 0) - (probeHidden ? 1 : 0);
       $("stat-korean").textContent = stats.koreanCount ?? 0;
       $("stat-both").textContent = stats.bothCompletedCount ?? 0;
       $("last-updated").textContent = `마지막 갱신: ${data.updatedAtKst || new Date().toLocaleTimeString("ko-KR")}`;
       $("sync-status").textContent = "구글 시트 실시간 연동 정상 (10초 주기 자동 갱신)";
 
       // 1. 포즈 챌린지
-      const poseList = data.poseRanking || [];
+      const poseList = (data.poseRanking || []).filter(r => !(probeHidden && r.nickname === PROBE_SIG.nickname && r.isoTime === PROBE_SIG.isoTime)).map((r, i) => ({ ...r, rank: i + 1 }));
       $("pose-count-badge").textContent = `총 ${poseList.length}건`;
       renderPodium("pose-podium", poseList, r => `기본 ${r.baseScore} + 보너스 ${r.bonusScore} · ${esc(r.timeStr)}`, "score");
       $("pose-tbody").innerHTML = poseList.length
@@ -763,7 +779,7 @@
         : `<tr><td colspan="5" class="empty-row">아직 국어 놀이터 기록이 없습니다.</td></tr>`;
 
       // 3. 통합 합산
-      const combList = data.combinedRanking || [];
+      const combList = (data.combinedRanking || []).filter(r => !(probeHidden && r.nickname === PROBE_SIG.nickname && r.poseTime === PROBE_SIG.timeStr)).map((r, i) => ({ ...r, rank: i + 1 }));
       $("combined-count-badge").textContent = `총 ${combList.length}건 (양과목 완주 ${stats.bothCompletedCount || 0}명)`;
       renderPodium(
         "combined-podium",
@@ -912,7 +928,8 @@
       }
     }, 200);
 
-    // 초기 로드 & 10초 주기 실시간 갱신
+    // 초기 로드 & 10초 주기 실시간 갱신 (기본 3단 한눈에 보기)
+    toggleSplitMode(true);
     loadFestaData();
     setInterval(loadFestaData, POLL_INTERVAL_MS);
   </script>
