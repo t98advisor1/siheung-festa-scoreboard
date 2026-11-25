@@ -789,11 +789,13 @@
       );
 
       const aw = data.awards || {};
+      // 포즈 1위 시상 표시도 필터된 순위 기준으로 (시험 기록 제외 시)
+      const dispBestPose = probeHidden ? (poseList[0] || null) : aw.bestPose;
       $("special-awards").innerHTML = `
         <div class="award-chip">
           <div>
             <div class="a-label">🤸 포즈 마스터상 (포즈 1위)</div>
-            <div class="a-val">${aw.bestPose ? `${esc(aw.bestPose.nickname)} · ${aw.bestPose.score.toLocaleString()}점` : "집계 대기 중"}</div>
+            <div class="a-val">${dispBestPose ? `${esc(dispBestPose.nickname)} · ${dispBestPose.score.toLocaleString()}점` : "집계 대기 중"}</div>
           </div>
         </div>
         <div class="award-chip">
